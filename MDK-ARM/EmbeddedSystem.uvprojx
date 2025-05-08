@@ -340,7 +340,7 @@
               <MiscControls></MiscControls>
               <Define>USE_HAL_DRIVER,STM32L073xx</Define>
               <Undefine></Undefine>
-              <IncludePath>../Core/Inc;../Drivers/STM32L0xx_HAL_Driver/Inc;../Drivers/STM32L0xx_HAL_Driver/Inc/Legacy;../Drivers/CMSIS/Device/ST/STM32L0xx/Include;../Drivers/CMSIS/Include;../Drivers/ssd1306</IncludePath>
+              <IncludePath>../Core/Inc;../Drivers/STM32L0xx_HAL_Driver/Inc;../Drivers/STM32L0xx_HAL_Driver/Inc/Legacy;../Drivers/CMSIS/Device/ST/STM32L0xx/Include;../Drivers/CMSIS/Include;../Drivers/ssd1306;../Drivers/mpu6500</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -854,6 +854,16 @@
               <FileName>ssd1306_fonts.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\Drivers\ssd1306\ssd1306_fonts.c</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>Drivers/mpu6500</GroupName>
+          <Files>
+            <File>
+              <FileName>mpu6500.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Drivers\mpu6500\mpu6500.c</FilePath>
             </File>
           </Files>
         </Group>
