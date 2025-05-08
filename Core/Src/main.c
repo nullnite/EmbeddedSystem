@@ -21,7 +21,9 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "ssd1306.h"
+#include "ssd1306_fonts.h"
+#include <stdio.h>
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -52,7 +54,7 @@ TIM_HandleTypeDef htim6;
 UART_HandleTypeDef huart2;
 
 /* USER CODE BEGIN PV */
-
+volatile float frequency = 0;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -65,12 +67,26 @@ static void MX_I2C1_Init(void);
 static void MX_TIM2_Init(void);
 static void MX_TIM6_Init(void);
 /* USER CODE BEGIN PFP */
-
+static void UpdateOLED(void);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+static void UpdateOLED(void) {
+    char buffer[20];
 
+    ssd1306_Fill(Black);
+		
+    ssd1306_SetCursor(0, 0);
+    ssd1306_WriteString("Frequency", Font_16x15, White);
+		
+		ssd1306_SetCursor(0, 15);
+    snprintf(buffer, sizeof(buffer), "%06.3f", frequency / 1000);
+    ssd1306_WriteString(buffer, Font_16x24, White);
+    ssd1306_WriteString("kHz", Font_16x15, White);
+		
+		ssd1306_UpdateScreen();
+}
 /* USER CODE END 0 */
 
 /**
@@ -109,7 +125,7 @@ int main(void)
   MX_TIM2_Init();
   MX_TIM6_Init();
   /* USER CODE BEGIN 2 */
-
+	ssd1306_Init();
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -119,6 +135,7 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
+		UpdateOLED();
   }
   /* USER CODE END 3 */
 }
