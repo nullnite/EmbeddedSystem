@@ -146,8 +146,8 @@ static void ReadMPU(void) {
 
     mpu6500GetAcceleration(&Ax, &Ay, &Az);
 
-    float ratio = 1638.4 * 1.159;  // LSB/g * coeff
-    float acceleration = sqrtf(Ax * Ax + Ay * Ay + Az * Az) / ratio - 9.82;
+    float ratio = 1638.4 * 1.159;                                            // LSB/g * coeff
+    float acceleration = sqrtf(Ax * Ax + Ay * Ay + Az * Az) / ratio - 9.82;  // calc vibration vector, normalize, and remove Earth acc in Kaunas
 
     vibration_sum += acceleration * acceleration;  // square
     vibr_measurements++;
@@ -177,14 +177,14 @@ static void SendVibration(void) {
 }
 
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
-    if (htim == &htim6 && !displaying) {
+    if (htim == &htim6) {
         // screen update rate depends on mode
         if (measurementMode == measure_frequency) {
             GetFrequency();
             SendFrequency();
 
             if (updates >= DISPLAY_FREQ_PERIOD * SEND_RATE) {
-								displaying = 1;
+                displaying = 1;
                 updates = 0;
                 buttonPressed = 0;
             }
@@ -193,14 +193,14 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
             SendVibration();
 
             if (updates >= DISPLAY_VIBR_PERIOD * SEND_RATE) {
-								displaying = 1;
+                displaying = 1;
                 updates = 0;
                 buttonPressed = 0;
             }
         }
 
         updates++;
-    } else if (htim == &htim7 && !displaying && measurementMode == measure_vibration) {
+    } else if (htim == &htim7 && measurementMode == measure_vibration) {
         ReadMPU();
     }
 }
@@ -272,14 +272,15 @@ int main(void) {
 
         /* USER CODE BEGIN 3 */
         HAL_DAC_SetValue(&hdac, DAC_CHANNEL_1, DAC_ALIGN_12B_R, dac_value);
-				if (displaying) {
-					if (measurementMode == measure_frequency) {
-						DisplayFrequency();
-					} else if (measurementMode == measure_vibration) {
-						DisplayVibration();
-					}
-					displaying = 0;
-				}
+
+        if (displaying) {
+            if (measurementMode == measure_frequency) {
+                DisplayFrequency();
+            } else if (measurementMode == measure_vibration) {
+                DisplayVibration();
+            }
+            displaying = 0;
+        }
     }
     /* USER CODE END 3 */
 }
