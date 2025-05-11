@@ -21,9 +21,9 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include <math.h>
 #include <stdio.h>
 
-#include "math.h"
 #include "mpu6500.h"
 #include "ssd1306.h"
 #include "ssd1306_fonts.h"
@@ -40,7 +40,6 @@ typedef enum {
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
 #define SEND_RATE 10
-#define MEAS_VIBR_PERIOD 0.001
 #define DISPLAY_FREQ_PERIOD 1
 #define DISPLAY_VIBR_PERIOD 3
 /* USER CODE END PD */
@@ -71,9 +70,9 @@ volatile uint8_t displaying = 0;
 
 volatile float frequency = 0;
 
-volatile float vibration_sum = 0;
 volatile float vibration = 0;
-volatile uint16_t vibr_measurements = 0;
+volatile float vibration_sum = 0;
+volatile uint16_t vibration_measurements = 0;
 
 volatile uint8_t buttonPressed = 0;
 /* USER CODE END PV */
@@ -111,7 +110,7 @@ static void DisplayFrequency(void) {
     ssd1306_WriteString("Frequency", Font_16x15, White);
 
     ssd1306_SetCursor(0, 25);
-    snprintf(buffer, sizeof(buffer), "%06.3f", frequency / 1000);
+    snprintf(buffer, sizeof(buffer), "%06.3f", frequency / 1000.0f);
     ssd1306_WriteString(buffer, Font_16x24, White);
 
     ssd1306_WriteString("kHz", Font_16x15, White);
@@ -146,18 +145,24 @@ static void ReadMPU(void) {
 
     mpu6500GetAcceleration(&Ax, &Ay, &Az);
 
-    float ratio = 1638.4 * 1.159;                                            // LSB/g * coeff
-    float acceleration = sqrtf(Ax * Ax + Ay * Ay + Az * Az) / ratio - 9.82;  // calc vibration vector, normalize, and remove Earth acc in Kaunas
+    const float ratio = 1638.4f * 1.159f;  // LSB/g * coeff
+    const float base_g = 9.82f;
 
+    // calc vibration vector, normalize, and remove baseline acceleration
+    float acceleration = sqrtf((float)Ax * (float)Ax + (float)Ay * (float)Ay + (float)Az * (float)Az) / ratio - base_g;
     vibration_sum += acceleration * acceleration;  // square
-    vibr_measurements++;
+    vibration_measurements++;
 }
 
 static void GetVibration(void) {
-    vibration = vibration_sum / vibr_measurements;  // mean square
-    vibr_measurements = 0;
-    vibration_sum = 0;
-    vibration = sqrtf(vibration);  // root mean square
+    if (vibration_measurements > 0) {
+        vibration = vibration_sum / vibration_measurements;  // mean square
+
+        vibration = sqrtf(vibration);  // root mean square
+
+        vibration_measurements = 0;
+        vibration_sum = 0;
+    }
 }
 
 static void SendFrequency(void) {
@@ -200,7 +205,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
         }
 
         updates++;
-    } else if (htim == &htim7 && measurementMode == measure_vibration) {
+    } else if (htim == &htim7 && measurementMode == measure_vibration && !displaying) {
         ReadMPU();
     }
 }
