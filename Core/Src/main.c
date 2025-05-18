@@ -144,21 +144,25 @@ static void ReadMPU(void) {
     int16_t Ax, Ay, Az;
 
     mpu6500GetAcceleration(&Ax, &Ay, &Az);
+		
+		const float g = 9.81f;
+    const float LSBoverg = 16384.0f;
+		const float ratio = LSBoverg / g;
+		const float offset = 1.34f;
 
-    const float ratio = 1638.4f * 1.159f;  // LSB/g * coeff
-    const float base_g = 9.82f;
-
-    // calc vibration vector, normalize, and remove baseline acceleration
-    float acceleration = sqrtf((float)Ax * (float)Ax + (float)Ay * (float)Ay + (float)Az * (float)Az) / ratio - base_g;
-    vibration_sum += acceleration * acceleration;  // square
+    // Calculate vibration vector
+    float acceleration = sqrtf((float)Ax * (float)Ax + (float)Ay * (float)Ay + (float)Az * (float)Az);
+		// Convert to m/s^2 and remove base acceleration and offset
+		acceleration = acceleration / ratio - g - offset; 
+    vibration_sum += acceleration * acceleration;  // Square
     vibration_measurements++;
 }
 
 static void GetVibration(void) {
     if (vibration_measurements > 0) {
-        vibration = vibration_sum / vibration_measurements;  // mean square
+        vibration = vibration_sum / vibration_measurements;  // Mean square
 
-        vibration = sqrtf(vibration);  // root mean square
+        vibration = sqrtf(vibration);  // Root mean square
 
         vibration_measurements = 0;
         vibration_sum = 0;
