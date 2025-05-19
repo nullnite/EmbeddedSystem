@@ -144,16 +144,16 @@ static void ReadMPU(void) {
     int16_t Ax, Ay, Az;
 
     mpu6500GetAcceleration(&Ax, &Ay, &Az);
-		
-		const float g = 9.81f;
+
+    const float g = 9.81f;
     const float LSBoverg = 16384.0f;
-		const float ratio = LSBoverg / g;
-		const float offset = 1.34f;
+    const float ratio = LSBoverg / g;
+    const float offset = 1.34f;
 
     // Calculate vibration vector
     float acceleration = sqrtf((float)Ax * (float)Ax + (float)Ay * (float)Ay + (float)Az * (float)Az);
-		// Convert to m/s^2 and remove base acceleration and offset
-		acceleration = acceleration / ratio - g - offset; 
+    // Convert to m/s^2 and remove base acceleration and offset
+    acceleration = acceleration / ratio - g - offset;
     vibration_sum += acceleration * acceleration;  // Square
     vibration_measurements++;
 }
@@ -187,7 +187,7 @@ static void SendVibration(void) {
 
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
     if (htim == &htim6) {
-        // screen update rate depends on mode
+        // Screen update rate depends on mode
         if (measurementMode == measure_frequency) {
             GetFrequency();
             SendFrequency();
@@ -270,7 +270,7 @@ int main(void) {
     HAL_COMP_Start(&hcomp2);
 
     HAL_DAC_Start(&hdac, DAC_CHANNEL_1);
-    uint16_t dac_value = 62;  // 0.05 V
+    uint16_t dac_value = 62;  // 0.05 V = 3.3 V / 4095 * 62
 
     /* USER CODE END 2 */
 
